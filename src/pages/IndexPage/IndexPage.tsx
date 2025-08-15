@@ -1,155 +1,158 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
+import type { FC } from 'react';
 
-// --- Mock Components ---
-// The following components are placeholders to resolve the compilation errors
-// and create a runnable example. In your actual application, you would
-// import these from '@telegram-apps/telegram-ui' and your project's component library.
+// --- Components (Styled for a Golden Glassy Design) ---
 
-const Page = ({ children }) => (
-  <div className="bg-gray-100 dark:bg-gray-900 font-sans p-4 min-h-screen transition-colors duration-300">
-    <div className="max-w-xl mx-auto">{children}</div>
-  </div>
-);
-
-const Link = ({ to, children, style }) => (
-  <a href={to} style={{ ...style, textDecoration: 'none', color: 'inherit' }}>{children}</a>
-);
-
-const Section = ({ header, footer, children }) => (
-  <div className="bg-white dark:bg-gray-800 rounded-lg shadow mb-6 overflow-hidden">
-    {header && <h2 className="text-sm font-semibold p-3 bg-gray-50 dark:bg-gray-700 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600">{header}</h2>}
-    <div>{children}</div>
-    {footer && <p className="text-xs text-gray-500 dark:text-gray-400 p-3 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">{footer}</p>}
-  </div>
-);
-
-const List = ({ children }) => <div>{children}</div>;
-
-const Cell = ({ before, subtitle, children }) => (
-  <div className="flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-200 dark:border-gray-600 last:border-b-0">
-    {before && <div className="mr-4 flex-shrink-0">{before}</div>}
-    <div className="flex-grow">
-      <div className="font-medium text-gray-800 dark:text-white">{children}</div>
-      {subtitle && <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{subtitle}</div>}
-    </div>
-    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-    </svg>
-  </div>
-);
-
-const Button = ({ children, size, stretched, onClick, variant = 'primary' }) => {
-    const baseClasses = `font-bold rounded-lg transition-colors focus:outline-none focus:ring-2`;
-    const sizeClasses = size === 'l' ? 'py-3 px-4 text-base' : 'py-2 px-4 text-sm';
-    const stretchClasses = stretched ? 'w-full' : '';
-    const variantClasses = {
-        primary: 'bg-blue-500 text-white hover:bg-blue-600 focus:ring-blue-300',
-        secondary: 'bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 focus:ring-gray-400'
-    };
-
-    return (
-      <button onClick={onClick} className={`${baseClasses} ${sizeClasses} ${stretchClasses} ${variantClasses[variant]}`}>
+const Page: FC<{ children: React.ReactNode }> = ({ children }) => (
+    <div style={{
+        padding: '16px',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        minHeight: '100vh',
+        color: 'var(--tg-theme-text-color, #ffffff)',
+        position: 'relative', // Needed for content to appear above the fixed background
+        zIndex: 1,
+    }}>
         {children}
-      </button>
+    </div>
+);
+
+const Link: FC<{ children: React.ReactNode; to: string; style?: React.CSSProperties }> = ({ children, to, style }) => (
+    <a href={to} style={{ ...style, textDecoration: 'none', color: 'inherit' }}>
+        {children}
+    </a>
+);
+
+const Section: FC<{ children: React.ReactNode }> = ({ children }) => (
+    <div style={{
+        // Enhanced Glassmorphism effect for sections
+        backgroundColor: 'var(--tg-theme-section-bg-color, rgba(30, 30, 30, 0.5))',
+        backdropFilter: 'blur(30px) saturate(200%)',
+        WebkitBackdropFilter: 'blur(30px) saturate(200%)', // For Safari support
+
+        border: '1px solid var(--tg-theme-border-color, rgba(255, 215, 0, 0.2))', // Subtle golden border
+        borderRadius: '24px',
+        marginBottom: '1.5rem',
+        overflow: 'hidden',
+        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.37)', // Deeper shadow for more depth
+    }}>
+        {children}
+    </div>
+);
+
+// --- App Structure ---
+
+/**
+ * A simplified Navbar with the updated modern look.
+ */
+const AppNavbar: FC = () => {
+    return (
+        <Section>
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 20px'
+            }}>
+                <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <svg
+                        width="28"
+                        height="28"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        style={{ color: 'var(--tg-theme-golden-color, #FFD700)' }}
+                    >
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
+                    </svg>
+                    <span style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Mini App</span>
+                </Link>
+            </div>
+        </Section>
     );
 };
 
-const Image = ({ style }) => (
-    // Since the original SVG can't be loaded, we'll use a styled placeholder.
-    <div style={{...style, width: '44px', height: '44px', borderRadius: '10px' }} className="flex items-center justify-center text-white font-bold text-lg">
-      TON
-    </div>
-);
-
-
-// --- Main Component ---
-// This is the main component for your page, now using the mock components above.
-
-export const IndexPage = ({ toggleTheme, theme }) => {
-  return (
-    <Page>
-      {/* Theme switcher and Navbar */}
-      <Section>
-        <div className="p-2">
-            <Button onClick={toggleTheme} size="m" stretched variant="secondary">
-              Switch to {theme === 'light' ? 'Dark' : 'Light'} Mode
-            </Button>
-        </div>
-        <div style={{ display: 'flex', gap: '8px', padding: '8px', paddingTop: 0 }}>
-          <Link to="/todo" style={{ flexGrow: 1 }}>
-            <Button size="l" stretched>
-              TODO
-            </Button>
-          </Link>
-          <Link to="/timer" style={{ flexGrow: 1 }}>
-            <Button size="l" stretched>
-              Timer
-            </Button>
-          </Link>
-        </div>
-      </Section>
-
-      {/* Original Page Content */}
-      <List>
-        <Section
-          header="Features"
-          footer="You can use these pages to learn more about features, provided by Telegram Mini Apps and other useful projects"
-        >
-          <Link to="/ton-connect">
-            <Cell
-              before={<Image style={{ backgroundColor: '#007AFF' }}/>}
-              subtitle="Connect your TON wallet"
-            >
-              TON Connect
-            </Cell>
-          </Link>
-        </Section>
-        <Section
-          header="Application Launch Data"
-          footer="These pages help developer to learn more about current launch information"
-        >
-          <Link to="/init-data">
-            <Cell subtitle="User data, chat information, technical data">Init Data</Cell>
-          </Link>
-          <Link to="/launch-params">
-            <Cell subtitle="Platform identifier, Mini Apps version, etc.">Launch Parameters</Cell>
-          </Link>
-          <Link to="/theme-params">
-            <Cell subtitle="Telegram application palette information">Theme Parameters</Cell>
-          </Link>
-        </Section>
-      </List>
-    </Page>
-  );
+/**
+ * Main Page Component.
+ */
+export const IndexPage: FC = () => {
+    return (
+        <Page>
+            <AppNavbar />
+            <Section>
+                <div style={{ padding: '50px 25px', textAlign: 'center' }}>
+                    <h2 style={{ margin: '0 0 10px 0', fontSize: '2rem', fontWeight: '600', color: 'var(--tg-theme-golden-color, #FFD700)'}}>Welcome</h2>
+                    <p style={{
+                        margin: 0,
+                        color: 'var(--tg-theme-hint-color, #dddddd)',
+                        lineHeight: '1.6'
+                    }}>
+                        Your modern page content goes here.
+                    </p>
+                </div>
+            </Section>
+        </Page>
+    );
 };
 
-// --- App Wrapper for Rendering ---
-// This default export helps render the component in a preview environment.
-export default function App() {
-    const [theme, setTheme] = useState('light');
-
+// --- App Wrapper ---
+// This component sets up the global styles and the blurred background effect.
+function App() {
     useEffect(() => {
-        // Add Tailwind CSS for styling the mock components
-        const tailwindScriptId = 'tailwind-script';
-        if (!document.getElementById(tailwindScriptId)) {
-            const tailwindScript = document.createElement('script');
-            tailwindScript.id = tailwindScriptId;
-            tailwindScript.src = 'https://cdn.tailwindcss.com';
-            document.head.appendChild(tailwindScript);
+        // Define the new golden color palette
+        const styles = {
+            '--tg-theme-bg-color': '#000000',
+            '--tg-theme-section-bg-color': 'rgba(30, 30, 30, 0.5)', // Darker semi-transparent
+            '--tg-theme-text-color': '#ffffff',
+            '--tg-theme-hint-color': '#dddddd', // Brighter hint text
+            '--tg-theme-border-color': 'rgba(255, 215, 0, 0.2)', // Subtle golden border
+            '--tg-theme-golden-color': '#FFD700', // Main golden color
+        };
+
+        // Apply the base background color
+        document.body.style.backgroundColor = styles['--tg-theme-bg-color'];
+        document.body.style.overflow = 'hidden'; // Prevent body scrollbars from interfering with the background
+
+        // Apply CSS variables to the root element
+        for (const [key, value] of Object.entries(styles)) {
+            document.documentElement.style.setProperty(key, value);
         }
+
+        // --- Create the blurred, animated golden background ---
+        const styleTag = document.createElement('style');
+        styleTag.innerHTML = `
+          body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            background:
+              radial-gradient(ellipse at 70% 80%, #FFD700, transparent 50%),
+              radial-gradient(ellipse at 30% 20%, #FFA500, transparent 50%);
+            background-size: 150% 150%;
+            animation: moveLivelyGradient 20s ease infinite alternate;
+            filter: blur(120px); /* Increased blur for a softer effect */
+            opacity: 0.6; /* Soften the overall effect */
+          }
+
+          @keyframes moveLivelyGradient {
+            0% { transform: rotate(0deg) scale(1.2); background-position: 0% 50%; }
+            100% { transform: rotate(360deg) scale(1.2); background-position: 100% 50%; }
+          }
+        `;
+        document.head.appendChild(styleTag);
+
+        // Cleanup the style tag when the component unmounts
+        return () => {
+            document.head.removeChild(styleTag);
+            document.body.style.overflow = 'auto';
+        };
     }, []);
 
-    useEffect(() => {
-        if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    }, [theme]);
-
-    const toggleTheme = () => {
-        setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-    };
-
-    return <IndexPage toggleTheme={toggleTheme} theme={theme} />;
+    return <IndexPage />;
 }
+
+export default App;
